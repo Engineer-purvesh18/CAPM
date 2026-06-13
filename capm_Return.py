@@ -26,7 +26,7 @@ try:
     # downloading data for SP500
     end = datetime.date.today()
     start = datetime.date(datetime.date.today().year - year, datetime.date.today().month, datetime.date.today().day)
-    SP500 = web.DataReader(['sp500'], 'fred', start, end)
+    SP500 = yf.download('^GSPC', start=start, end=end)[['Close']].rename(columns={'Close': 'sp500'})
 
     # downloading data for the stock
     stocks_df = pd.DataFrame()
@@ -36,9 +36,8 @@ try:
     stocks_df.reset_index(inplace = True)
     SP500.reset_index(inplace = True)
     SP500.columns = ['Date','sp500']
-    stocks_df['Date'] = stocks_df['Date'].astype('datetime64[ns]')
-    stocks_df['Date'] = stocks_df['Date'].apply(lambda x:str(x)[:10])
-    stocks_df['Date'] = pd.to_datetime(stocks_df['Date'])
+    SP500['Date'] = pd.to_datetime(SP500['Date']).dt.tz_localize(None).dt.normalize()
+    stocks_df['Date'] = pd.to_datetime(stocks_df['Date']).dt.tz_localize(None).dt.normalize()
     stocks_df = pd.merge(stocks_df, SP500, on = 'Date', how = 'inner')
 
     col1, col2 = st.columns([1,1])
